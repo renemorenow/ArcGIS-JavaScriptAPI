@@ -4,7 +4,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"
   />
-  <title>Access services traffic with OAuth 2.0</title>
+  <title>v4.14 - Access services traffic with OAuth 2.0</title>
   <link rel="stylesheet" href="https://js.arcgis.com/4.14/esri/themes/light/main.css">
   <script src="https://js.arcgis.com/4.14/"></script>
   <style>
@@ -71,12 +71,13 @@
       "esri/views/MapView",
       "esri/layers/MapImageLayer",
       "esri/portal/PortalQueryParams",
+      "esri/widgets/Locate",
       "dojo/dom-style",
       "dojo/dom-attr",
       "dojo/on",
       "dojo/dom"
     ], function(
-        Portal, OAuthInfo, identityManager, Map, MapView, MapImageLayer, PortalQueryParams,
+        Portal, OAuthInfo, identityManager, Map, MapView, MapImageLayer, PortalQueryParams, Locate,
         domStyle, domAttr, on, dom) {
 
       // ArcGIS Online or your portal address
@@ -120,7 +121,6 @@
         var map = new Map({
           basemap: "topo"
         });
-
         var view = new MapView({
           container: "viewDiv",
           map: map,
@@ -128,19 +128,36 @@
           center: [-118.24,34.05]
         });
 
+        //Mostrar boton obtener ubicacion:
+        view.when(function(){
+          // Create an instance of the Locate widget
+          var locateWidget = new Locate({
+            view: view,
+            scale: 5000
+          });
+
+          // and add it to the mapView's UI
+          view.ui.add(locateWidget, "top-left");
+          locateWidget.locate();
+
+          locateWidget.on("locate", function(locateEvent){
+            //console.log(locateEvent);
+            //console.log("locate: %s", mapView.scale);
+          });
+        });
+        
         var traffic = new MapImageLayer({
           url: 'https://traffic.arcgis.com/arcgis/rest/services/World/Traffic/MapServer'
-        })
-        
+        });        
         map.add(traffic);
 
+        //Query contenido
         var queryParams = new PortalQueryParams({
           query: "owner:" + portal.user.username,
           sortField: "numViews",
           sortOrder: "desc",
           num: 20
         });
-
         // Query the items based on the queryParams created from portal above
         portal.queryItems(queryParams).then(createGallery);
         

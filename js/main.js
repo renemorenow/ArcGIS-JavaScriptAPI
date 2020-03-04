@@ -1,3 +1,4 @@
+
 "use strict";
 
 var tutorialsApp = angular.module('tutorialsApp', ['ngSanitize', 'LocalStorageModule', 'ui.ace']);
@@ -45,7 +46,7 @@ tutorialsApp.controller('MainCtrl', ['$scope', '$http', '$sce', '$location', 'lo
             });
 
         $scope.tutorials = [];
-        $http.get('https://api.github.com/repos/esri-es/JavascriptAPI/contents/src/tutoriales').
+        $http.get('https://api.github.com/repos/renemorenow/ArcGIS-JavaScriptAPI/contents/src/tutoriales').
             then(function (response) {
                 response.data.forEach(function (elem) {
                     if (elem.name.indexOf(".html") !== -1) {
@@ -123,7 +124,7 @@ tutorialsApp.controller('MainCtrl', ['$scope', '$http', '$sce', '$location', 'lo
                 });
         };
 
-        $scope.addToFavourites = function(){
+        $scope.addToFavourites = function () {
             if (window.sidebar && window.sidebar.addPanel) { // Mozilla Firefox Bookmark
                 window.sidebar.addPanel(document.title,window.location.href,'');
             } else if(window.external && ('AddFavorite' in window.external)) { // IE Favorite
@@ -134,6 +135,10 @@ tutorialsApp.controller('MainCtrl', ['$scope', '$http', '$sce', '$location', 'lo
             } else { // webkit - safari/chrome
                 alert('Press ' + (navigator.userAgent.toLowerCase().indexOf('mac') != - 1 ? 'Command/Cmd' : 'CTRL') + ' + D to bookmark this page.');
             }
+        };
+
+        $scope.viewApiReference = function () {
+            window.open('https://developers.arcgis.com/javascript/latest/api-reference/', '_blank');
         };
 
         $scope.getTitle = function (html) {

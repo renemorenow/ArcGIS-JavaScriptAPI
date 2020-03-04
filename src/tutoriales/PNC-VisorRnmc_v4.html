@@ -1,0 +1,494 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>Visor Geográfico RMNC</title>
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+
+      #instruction {
+        z-index: 99;
+        position: absolute;
+        top: 15px;
+        left: 50%;
+        padding: 5px;
+        margin-left: -175px;
+        height: 30px;
+        width: 355px;
+        background: rgba(25, 25, 25, 0.8);
+        color: white;
+      }
+      
+    </style>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.14/esri/themes/light/main.css" />
+    <script src="https://js.arcgis.com/4.14/"></script>
+
+    <script>
+      var lat, lon;      
+      var numCuadranteSiedco, numCuadrante, entAdministrativa, barrio, codEstacion, codCai, cuaRural, nomMunicipio, templateContent;
+      var dataPoint = { };
+      var markColor = "0a9242";
+
+      require([
+        "esri/tasks/Locator",
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/Basemap",
+        "esri/tasks/QueryTask",
+        "esri/tasks/support/Query",
+        "esri/tasks/Locator",
+        "esri/geometry/Point",
+        "esri/Graphic",
+        "esri/symbols/SimpleMarkerSymbol",
+        "esri/widgets/Locate",
+        "esri/widgets/BasemapGallery",
+        "esri/request",
+        "esri/widgets/Search",
+        "esri/widgets/Search/SearchSource",
+        "esri/geometry/geometryEngine",
+        "dojo/promise/all"
+      ], function(Locator, Map, MapView, Basemap, QueryTask, Query, Locator, Point, Graphic, SimpleMarkerSymbol, Locate, BasemapGallery, esriRequest, Search, SearchSource, geometryEngine, All) {
+        urlLocator = "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer";
+        var locatorTask = new Locator({
+          url: urlLocator
+        });
+        
+        // An open data address search API for France
+        var url = "https://api-adresse.data.gouv.fr/";
+
+        // in this case the portalItem has to be a webmap
+        var basemap = new Basemap({
+          portalItem: {
+            id: "d453139dc4524a48ae9b2bb9b3d2a0dc" //Visor de Georreferenciación RNMC
+          }
+        });
+
+        // Create the Map
+        var map = new Map({
+          basemap: basemap//"streets-navigation-vector"
+        });
+
+        // Create the MapView
+        var mapView = new MapView({
+          container: "viewDiv",
+          map: map,
+          center: [-74.0199, 4.7158],
+          zoom: 12
+        });
+        
+        var searchWidget = new Search({
+          sources: [{
+            locator: new Locator({ url: urlLocator}),
+            countryCode:"CO",
+            singleLineFieldName: "SingleLine",
+            name: "Custom Geocoding Service",
+            localSearchOptions: {
+              minScale: 300000,
+              distance: 50000
+            },
+            placeholder: "Busqueda",
+            maxResults: 3,
+            maxSuggestions: 6,
+            suggestionsEnabled: true,
+            minSuggestCharacters: 0
+        }],
+        view: mapView,
+        includeDefaultSources: false
+    });
+
+        // Add the search widget to the top right corner of the view
+        mapView.ui.add(searchWidget, {
+          position: "top-right"
+        });
+        
+        mapView.when(function(){
+          // Create an instance of the Locate widget
+          var locateWidget = new Locate({
+            view: mapView,
+            scale: 5000
+          });
+
+          // and add it to the mapView's UI
+          mapView.ui.add(locateWidget, "top-left");
+          locateWidget.locate();
+
+          locateWidget.on("locate", function(locateEvent){
+            //console.log(locateEvent);
+            //console.log("locate: %s", mapView.scale);
+          })
+        });
+        
+        /*var customSearchSource = new SearchSource({
+          placeholder: "example: 8 Boulevard du Port",
+          // Provide a getSuggestions method
+          // to provide suggestions to the Search widget
+          getSuggestions: function(params) {
+            // You can request data from a
+            // third-party source to find some
+            // suggestions with provided suggestTerm
+            // the user types in the Search widget
+            return esriRequest(urlLocator + "search/", {
+              query: {
+                q: params.suggestTerm.replace(/ /g, "+"),
+                limit: 6,
+                lat: mapView.center.latitude,
+                lon: mapView.center.longitude
+              },
+              responseType: "json"
+            }).then(function(results) {
+              // Return Suggestion results to display
+              // in the Search widget
+              return results.data.features.map(function(feature) {
+                return {
+                  key: "name",
+                  text: feature.properties.label,
+                  sourceIndex: params.sourceIndex
+                };
+              });
+            });
+          },
+          // Provide a getResults method to find
+          // results from the suggestions
+          getResults: function(params) {
+            // If the Search widget passes the current location,
+            // you can use this in your own custom source
+            var operation = params.location ? "reverse/" : "search/";
+            var query = {};
+            // You can perform a different query if a location
+            // is provided
+            if (params.location) {
+              query.lat = params.location.latitude;
+              query.lon = params.location.longitude;
+            } else {
+              query.q = params.suggestResult.text.replace(/ /g, "+");
+              query.limit = 6;
+            }
+            return esriRequest(url + operation, {
+              query: query,
+              responseType: "json"
+            }).then(function(results) {
+              // Parse the results of your custom search
+              var searchResults = results.data.features.map(function(feature) {
+                // Create a Graphic the Search widget can display
+                var graphic = new Graphic({
+                  geometry: new Point({
+                    x: feature.geometry.coordinates[0],
+                    y: feature.geometry.coordinates[1]
+                  }),
+                  attributes: feature.properties
+                });
+                // Optionally, you can provide an extent for
+                // a point result, so the view can zoom to it
+                var buffer = geometryEngine.geodesicBuffer(
+                  graphic.geometry,
+                  100,
+                  "meters"
+                );
+                // Return a Search Result
+                var searchResult = {
+                  extent: buffer.extent,
+                  feature: graphic,
+                  name: feature.properties.label
+                };
+                return searchResult;
+              });
+
+              // Return an array of Search Results
+              return searchResults;
+            });
+          }
+        });
+        // Create Search widget using custom SearchSource
+        var searchWidget = new Search({
+          view: mapView,
+          sources: [customSearchSource],
+          includeDefaultSources: true
+        });
+        // Add the search widget to the top left corner of the view
+        mapView.ui.add(searchWidget, {
+          position: "top-right"
+        });*/
+
+        /*******************************************************************
+         * This click event sets generic content on the popup not tied to
+         * a layer, graphic, or popupTemplate. The location of the point is
+         * used as input to a reverse geocode method and the resulting
+         * address is printed to the popup content.
+         *******************************************************************/
+        mapView.popup.autoOpenEnabled = false;
+        mapView.on("click", function(event) {
+          mapView.graphics.removeAll();
+          // Get the coordinates of the click on the mapView
+          lat = (event.mapPoint.latitude * 1000) / 1000;
+          //var _lat = Math.round(event.mapPoint.latitude * 1000) / 1000;
+          lon = (event.mapPoint.longitude * 1000) / 1000;
+          //var _lon = Math.round(event.mapPoint.longitude * 1000) / 1000;              
+
+          executeIdentifyTask(event).then(responseTask => {
+            mapView.popup.open({
+              // Set the popup's title to the coordinates of the location
+              title: "Ubicación seleccionada:",
+              location: event.mapPoint // Set the location of the popup to the clicked location
+            });
+
+            var paramsLocation = { location: event.mapPoint };
+
+            // Display the popup
+            // Execute a reverse geocode using the clicked location
+            locatorTask
+              .locationToAddress(paramsLocation)
+              .then(function(response) {
+                  // If an address is successfully found, show it in the popup's content
+                  if(responseTask == null){
+                    mapView.popup.content = "<b>Selección inválida.<b/>";
+                    if(mapView.popup.actions.length == 3 && mapView.popup.actions.items[2].visible)
+                      mapView.popup.actions.items[2].visible = false;
+                    return;
+                  }
+                  mapView.popup.content = response.address + "<br/>" + responseTask;
+                  var point = {
+                    type: "point", // autocasts as new Point()
+                    longitude: lon,
+                    latitude: lat
+                  };
+                  var markerSymbol = {
+                    type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
+                    color: [226, 119, 40],
+                    outline: {
+                      color: [255, 255, 255],
+                      width: 2
+                    }
+                  };
+                  var pointGraphic = new Graphic({
+                    geometry: point,
+                    symbol: markerSymbol
+                  });
+                  mapView.graphics.addMany([pointGraphic]);
+
+                  if (mapView.popup.actions.length === 1) {
+                    const zoomOutAction = {
+                      title: "Zoom out",
+                      id: "zoom-out",
+                      className: "esri-icon-zoom-out-magnifying-glass"
+                    };
+                    mapView.popup.actions.push(zoomOutAction);              
+                    
+                    const actionButtonOk = {
+                      title: "Seleccionar",
+                      id: "select-this",
+                      className: "esri-icon-grant"
+                    };
+                    mapView.popup.actions.push(actionButtonOk);                    
+                    
+                  }
+                  //debugger;
+                 if(mapView.popup.actions.length == 3 && !mapView.popup.actions.items[2].visible)
+                    mapView.popup.actions.items[2].visible = true;                  
+              })
+              .catch(function(error) {
+                // If the promise fails and no result is found, show a generic message
+                mapView.popup.content = "<b>Selección inválida.<b/>";
+                 if(mapView.popup.actions.length == 3 && mapView.popup.actions.items[2].visible)
+                   mapView.popup.actions.items[2].visible = false;
+                
+              });
+                          
+          });
+          
+          numCuadranteSiedco=numCuadrante=entAdministrativa=barrio=codEstacion=codCai=cuaRural=nomMunicipio=templateContent=null;
+          dataPoint={};
+        });
+
+        async function executeIdentifyTask(evt) {
+          mapPoint = evt.mapPoint;
+          ///lat = evt.mapPoint.getLatitude();
+          ///lon = evt.mapPoint.getLongitude();
+
+          //Direccion
+          ///locator.locationToAddress(mapPoint, 10, direccionObtenida, errorDireccionObtenida);
+
+          //Cuadrantes AGOL
+          var qtCuadrantes = new QueryTask("https://services3.arcgis.com/8cBoM4o6pnuUb1z1/ArcGIS/rest/services/SIDENCO_SinMalla/FeatureServer/11");
+          var qCuadrantes = new Query();
+
+          /* Definimos las tareas de consulta para cada una de las capas dell servicio en AGOL */
+
+          //Layer Municipios
+          var qtMunicipios = new QueryTask("https://services3.arcgis.com/8cBoM4o6pnuUb1z1/ArcGIS/rest/services/SIDENCO_SinMalla/FeatureServer/3");
+          var qMunicipios = new Query();
+
+          //Layer Jurisdiccion_Estaciones
+          var qtJEstaciones = new QueryTask("https://services3.arcgis.com/8cBoM4o6pnuUb1z1/ArcGIS/rest/services/SIDENCO_SinMalla/FeatureServer/9");
+          var qJEstaciones = new Query();
+
+          //Layer Barrios
+          var qtBarrios = new QueryTask("https://services3.arcgis.com/8cBoM4o6pnuUb1z1/ArcGIS/rest/services/SIDENCO_SinMalla/FeatureServer/4");
+          var qBarrios = new Query();
+
+          //Layer Cuadrantes Rurales
+          var qtCRurales = new QueryTask("https://services3.arcgis.com/8cBoM4o6pnuUb1z1/ArcGIS/rest/services/SIDENCO_SinMalla/FeatureServer/12");
+          var qCRurales = new Query();
+
+          qCuadrantes.returnGeometry = false;
+          qMunicipios.returnGeometry = false;
+          qJEstaciones.returnGeometry = false;
+          qBarrios.returnGeometry = false;
+          qCRurales.returnGeometry = false;
+
+          qCuadrantes.outFields = ['CODIGO_SIEDCO', 'NRO_CUADRANTE']; //['CODIGO_SIEDCO'];
+          qJEstaciones.outFields = ['CODIGO_SIEDCO'];
+          qMunicipios.outFields = ['CODIGO', 'NOMBRE'];
+          qBarrios.outFields = ['NOMBRE'];
+          qCRurales.outFields = ['SIEDCO'];
+
+          var qGeom = new Point({
+              longitude: lon,
+              latitude: lat
+          });
+
+          qMunicipios.geometry = qGeom;
+          qJEstaciones.geometry = qGeom;
+          qBarrios.geometry = qGeom;
+          qCRurales.geometry = qGeom;
+          qCuadrantes.geometry = qGeom;
+          //qEstaciones.geometry = qGeom;
+
+          var municipio_ = qtMunicipios.execute(qMunicipios);
+          var estacion_ = qtJEstaciones.execute(qJEstaciones);
+          var barrio_ = qtBarrios.execute(qBarrios);
+          var crural_ = qtCRurales.execute(qCRurales);
+          var cuadrante_ = qtCuadrantes.execute(qCuadrantes);
+
+          await All([estacion_, cuadrante_, municipio_, barrio_, crural_]).then(function(results) {
+              if (results[2].hasOwnProperty("features")) {
+                if (results[2].features.length > 0) {
+                    entAdministrativa = results[2].features[0].attributes.CODIGO;
+                    nomMunicipio = results[2].features[0].attributes.NOMBRE;
+                } else {
+                    return;
+                }
+              }
+
+              //display a message so user knows something is happening
+              //domAttr.set(dom.byId("enviarInformacionLink"), "innerHTML", "Buscando informaci\xf3n...");
+              var codigoSiedco = "";
+              if (results[0].hasOwnProperty("features")) {
+                  if (results[0].features.length > 0) {
+                      codigoSiedco = "Cod SIEDCO Estacion: " + results[0].features[0].attributes.CODIGO_SIEDCO;
+                  } else if (results[1].hasOwnProperty("features")) {
+                      if (results[1].features.length > 0)
+                        codigoSiedco = "Cod SIEDCO Cuadrante: " + results[1].features[0].attributes.CODIGO_SIEDCO;
+                  }
+              }
+              //estacion_
+              if (results[0].hasOwnProperty("features")) {
+                  if (results[0].features.length > 0)
+                    codEstacion = results[0].features[0].attributes.CODIGO_SIEDCO;
+              }
+              //cuadrante_
+              if (results[1].hasOwnProperty("features")) {
+                  if (results[1].features.length > 0) {
+                    numCuadranteSiedco = results[1].features[0].attributes.CODIGO_SIEDCO;
+                    numCuadrante = results[1].features[0].attributes.NRO_CUADRANTE;
+                  }
+              }
+              //barrio_   
+              if (results[3].hasOwnProperty("features")) {
+                  if (results[3].features.length > 0)
+                    barrio = results[3].features[0].attributes.NOMBRE;
+              }
+              //CRrural_
+              if (results[4].hasOwnProperty("features")) {
+                  if (results[4].features.length > 0)
+                    cuaRural = results[4].features[0].attributes.SIEDCO;
+              }
+
+              templateContent = '<div class="border_">' + '<table class="tablePopup">' +
+                  '<tr><td>Numero Cuadrante</td><td>' + formatearTexto(numCuadrante) + '</td></tr>' +
+                  '<tr><td>Codigo DANE</td><td>' + formatearTexto(entAdministrativa) + '</td></tr>' +
+                  '<tr><td>Codigo Estacion</td><td>' + formatearTexto(codEstacion) + '</td></tr>' +
+                  '<tr><td>Barrio</td><td>' + formatearTexto(barrio) + '</td></tr>' +
+                  '<tr><td>Codigo SIEDCO Cuadrante</td><td>' + formatearTexto(numCuadrante) + '</td></tr>' +
+                  '<tr><td>Numero Cuadrante Rural</td><td>' + formatearTexto(cuaRural) + '</td></tr>' +
+                  '<tr><td>Nombre Municipio</td><td>' + formatearTexto(nomMunicipio) + '</td></tr>' +
+                  // '<tr><td>Direccion</td><td>' + formatearTexto(strAddress) + '</td></tr>' +
+                  '<tr><td>Latitud</td><td>' + lat + '</td></tr>' +
+                  '<tr><td>Longitud</td><td>' + lon + '</td></tr>' +
+                  '</table>' + '</div>';
+
+            dataPoint.numCuadrante = numCuadrante;
+            dataPoint.entAdministrativa = entAdministrativa;
+            dataPoint.codEstacion = codEstacion;
+            dataPoint.barrio = barrio;
+            dataPoint.numCuadrante = numCuadrante;
+            dataPoint.cuaRural = cuaRural;
+            dataPoint.nomMunicipio = nomMunicipio;
+            dataPoint.lat = lat;
+            dataPoint.lon = lon;
+
+            //console.log(dataPoint);
+              
+          });
+          return templateContent;
+
+        }        
+        
+        mapView.popup.on("trigger-action", function(event){
+            if(event.action.id === "zoom-out"){
+              zoomOut();
+            }
+            if(event.action.id === "select-this"){
+              selectLocation();
+            }
+          });
+        
+        function formatearTexto(t) {
+            //debugger;
+            //console.log('formatearTexto');
+            if (t == undefined || t == ' (+/- 10 mts)') {
+                t = 'Sin informacion';
+            }
+            return t;
+        }
+        
+        function zoomOut() {
+          mapView.goTo({
+            center: mapView.center,
+            zoom: mapView.zoom - 2
+          });
+        }
+        
+        function selectLocation() {
+          //alert('Selección satisfactoria');
+          document.getElementById("viewDiv").innerHTML = JSON.stringify(dataPoint);
+        }
+        
+        function showLayers(){
+          // Create the HTML div element programmatically at runtime and set to the widget's container
+          const basemapGallery = new BasemapGallery({
+            view: mapView,
+            container: document.createElement("div")
+          });
+          // Add the widget to the top-right corner of the mapView
+          mapView.ui.add(basemapGallery, {
+            position: "top-right"
+          });
+        }
+        
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="viewDiv"></div>
+    <input type="checkbox" id="chbShowLayers">Mostrar Capas</input>
+  </body>
+</html>

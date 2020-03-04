@@ -19,15 +19,15 @@
 	<div class="container">
 		<div class="row">
 			<div class="col-md-12">
-                <h1 class="text-center">Ejemplos: API JavaScript de ArcGIS <small id="addToFavs" ng-click="addToFavourites()" class="btn btn-warning btn-xs">Añadir a favoritos</small></h1>                
-                <h2 class="text-center"><a href="index_v4-14.html">Api Version 4x</a></h2>
+                <h1 class="text-center">Ejemplos: API JavaScript de ArcGIS (v4.14)<small id="addToFavs" ng-click="viewApiReference()" class="btn btn-warning btn-xs">Ver Api</small></h1>
+                <h2 class="text-center"><a href="index.html">Api Version 3x</a></h2>
 			</div>
 			<div class="col-md-12 text-center" style="margin-bottom: 1em;">
 				<div class="form-inline">
 					<div class="form-group">
 						<label for="tutos" class="control-label">Selecciona uno: </label>
 						<select id="tutos" class="form-control" ng-model="tuto" ng-change="update()">
-							<option ng-repeat="t in tutorials | filter : { name : '!!' } | orderBy: 'o'" value='{{t.i}}' on-finish-render="ngRepeatFinished">{{t.name}}</option>
+							<option ng-repeat="t in tutorials4x | filter : { name : '!!' } | orderBy: 'o'" value='{{t.i}}' on-finish-render="ngRepeatFinished">{{t.name}}</option>
 						</select>
                         <p style="margin-top: .5em;">
                             <small>

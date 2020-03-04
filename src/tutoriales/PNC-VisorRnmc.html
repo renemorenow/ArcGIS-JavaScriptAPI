@@ -1,0 +1,76 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Visor Rmnc</title>
+  <style>
+    html, body, #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+  
+  <link rel="stylesheet" href="https://js.arcgis.com/4.13/esri/css/main.css">
+  <script src="https://js.arcgis.com/4.13/"></script>
+  
+  <script>  
+    require([
+      "esri/WebMap",
+      "esri/views/MapView"
+    ], function(WebMap, MapView){
+      
+      var webmap = new WebMap({
+        portalItem: { id: "d453139dc4524a48ae9b2bb9b3d2a0dc" }
+      });
+
+      var view = new MapView({
+        container: "viewDiv",
+        map: webmap
+        //center: [-118.80500,34.02700],
+        //zoom: 13
+      });
+      //Cuadrantes AGOL
+      var map11 = new FeatureLayer({
+        url: "https://services3.arcgis.com/8cBoM4o6pnuUb1z1/ArcGIS/rest/services/SIDENCO_SinMalla/FeatureServer/11"
+      });
+      map.add(map11);
+      
+      //Municipios
+      var map3 = new FeatureLayer({
+        url: "https://services3.arcgis.com/8cBoM4o6pnuUb1z1/ArcGIS/rest/services/SIDENCO_SinMalla/FeatureServer/3"
+      });
+      map.add(map3);
+      
+      //Jurisdiccion_Estaciones
+      var map9 = new FeatureLayer({
+        url: "https://services3.arcgis.com/8cBoM4o6pnuUb1z1/ArcGIS/rest/services/SIDENCO_SinMalla/FeatureServer/9"
+      });
+      map.add(map9);
+      
+      //Barrios
+      var map4 = new FeatureLayer({
+        url: "https://services3.arcgis.com/8cBoM4o6pnuUb1z1/ArcGIS/rest/services/SIDENCO_SinMalla/FeatureServer/4"
+      });
+      map.add(map4);
+      
+      //Cuadrantes Rurales
+      var map12 = new FeatureLayer({
+        url: "https://services3.arcgis.com/8cBoM4o6pnuUb1z1/ArcGIS/rest/services/SIDENCO_SinMalla/FeatureServer/12"
+      });
+      map.add(map12);
+      
+      map.on("click", executeIdentifyTask);
+          map.on("mouse-move", showCoordinates);
+
+    });
+    function executeIdentifyTask(){
+      alert('executeIdentifyTask');
+    }
+  </script>
+</head>
+<body>
+  <div id="viewDiv"></div>
+</body>
+</html>

@@ -86,7 +86,9 @@
       // subsitute your own client ID to identify who spawned the login and check for a matching redirect URI
       var info = new OAuthInfo({
         appId: "ufXBM3VdHxmH52TA", //*** Your Client ID value goes here ***//
-        popup: false // inline redirects don't require any additional app configuration
+        popup: true, // inline redirects don't require any additional app configuration
+        popupCallbackUrl: "AccessTrafficUsingOAuth2.html",
+        preserveUrlHash: true
       });
 
       identityManager.registerOAuthInfos([info]);

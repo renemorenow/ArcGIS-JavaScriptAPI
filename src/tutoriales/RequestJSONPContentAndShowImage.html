@@ -1,0 +1,140 @@
+
+<html>
+    <head>
+      <!-- 
+      ArcGIS API for JavaScript, https://js.arcgis.com
+      For more information about the data_requestJsonp sample, read the original sample description at developers.arcgis.com.
+      https://developers.arcgis.com/javascript/3/jssamples/data_requestJsonp.html  
+      -->
+      <title>v3.31 - Request JSONP Content & Show Image</title>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+      <link rel="stylesheet" href="https://js.arcgis.com/3.31/esri/css/esri.css">
+      <style>
+        body{
+          font-family: "Arial Unicode MS, Arial, sans-serif";
+        }
+        #content {
+          width: 800px; height: 350px; padding: 5px; overflow: auto;
+          border: solid 2px #AAAAAA; background-color: #FFFFFF;
+          -moz-border-radius: 5px; -webkit-border-radius: 5px; -o-border-radius: 5px; border-radius: 5px;
+          -moz-box-shadow: 0 0 0.5em black; -webkit-box-shadow: 0 0 0.5em black; -o-box-shadow: 0 0 0.5em black; box-shadow: 0 0 0.5em black;
+        }
+        .failure { color: red; }
+        #status { font-size: 12px; }
+        .esri-item-gallery .esri-item-container {
+          float: left;
+          text-align: center;
+          padding: 10px;
+          width: 204px;
+          display: inline-block;
+        }
+    
+        .esri-item-gallery .esri-image {
+          width: 200px;
+          height: 133px;
+          border: 2px solid gray;
+          border-radius: 5px;
+        }
+    
+        .esri-item-gallery .esri-null-image {
+          line-height: 133px;
+          text-align: center;
+          color: #999999;
+        }
+    
+        .esri-item-gallery .esri-title {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+    
+        .esri-item-gallery .esri-null-title {
+          color: #999999;
+        }
+      </style>
+      
+      <script src="https://js.arcgis.com/3.31/"></script>
+      <script>
+        require(["dojo/dom", "dojo/on", "dojo/dom-class", "dojo/_base/json", "esri/request", "dojo/domReady!"], function(dom, on, domClass, dojoJson, esriRequest) {
+    
+            dom.byId("url").value = "https://api.flickr.com/services/feeds/photos_public.gne";
+            dom.byId("content").value = "";
+    
+            //handle the Go button's click event
+            on(dom.byId("submitRequest"), "click", getContent);
+    
+            function getContent(){
+    
+              var contentDiv = dom.byId("content");
+              contentDiv.value = "";
+              domClass.remove(contentDiv, "failure");
+              dom.byId("status").innerHTML = "Downloading...";
+    
+              //get the url
+              var url = dom.byId("url").value;
+    
+              var requestHandle = esriRequest({
+                "url": url,
+                "content": {
+                  "tags": "dog,us",
+                  "tagmode": "all",
+                  "format": "json"
+                },
+                "handeAs": "json",
+                "callbackParamName": "jsoncallback"
+              });
+              requestHandle.then(requestSucceeded, requestFailed);
+            }
+    
+            function requestSucceeded(response, io){
+              dom.byId("status").innerHTML = "";
+              dojoJson.toJsonIndentStr = "  ";
+              dom.byId("content").value = dojoJson.toJson(response, true);
+              if(response.items)
+                createGallery(response.items);
+            }
+            
+            function requestFailed(error, io){
+              domClass.add(dom.byId("content"), "failure");
+              dom.byId("status").innerHTML = "";
+    
+              dojoJson.toJsonIndentStr = " ";
+              dom.byId("content").value = dojoJson.toJson(error, true);
+            }
+          
+            function createGallery(items) {
+              var htmlFragment = "";
+    
+              items.forEach(function(item) {
+                htmlFragment +=
+                  '<div class="esri-item-container">' +
+                  (item.media.m
+                    ? '<div class="esri-image" style="background-image:url(' +
+                      item.media.m +
+                      '); cursor: pointer;" onclick="javascript:window.open(\''+item.media.m+'\', \'_blank\');" title="'+item.title+'"></div>'
+                    : '<div class="esri-image esri-null-image">Thumbnail not available</div>') +
+                  (item.title
+                    ? '<div class="esri-title">' + (item.title || "") + "</div>"
+                    : '<div class="esri-title esri-null-title">Title not available</div>') +
+                  "</div>";
+              });
+              document.getElementById("itemGallery").innerHTML = htmlFragment;
+            }
+    
+        });
+      </script>
+    
+    </head>
+    <body>
+      <p>Download content available in <b>JSONP</b> format using esriRequest. </p>
+      <p>
+        <input type="text" disabled="true" id="url" size="100"/>
+        <input id="submitRequest" type="button" value="GO" />
+        <span id="status"></span>
+      </p>
+      <h2>Content</h2>
+      <textarea id="content"></textarea>
+      <div id="itemGallery" class="esri-item-gallery" style="width: 100%;"></div>
+    </body>
+    </html>
+    

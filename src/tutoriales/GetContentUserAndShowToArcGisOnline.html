@@ -186,23 +186,23 @@
     }
 
     function createGallery(items) {
-          var htmlFragment = "";
+      var htmlFragment = "";
 
-          items.results.forEach(function(item) {
-            htmlFragment +=
-              '<div class="esri-item-container">' +
-              (item.thumbnailUrl
-                ? '<div class="esri-image" style="background-image:url(' +
-                  item.thumbnailUrl +
-                  '); cursor: pointer;" onclick="javascript:window.open(\'https://www.arcgis.com/home/item.html?id='+item.id+'\', \'_blank\');" title="'+item.title+'"></div>'
-                : '<div class="esri-image esri-null-image">Thumbnail not available</div>') +
-              (item.title
-                ? '<div class="esri-title">' + (item.title || "") + "</div>"
-                : '<div class="esri-title esri-null-title">Title not available</div>') +
-              "</div>";
-          });
-          document.getElementById("itemGallery").innerHTML = htmlFragment;
-        }
+      items.results.forEach(function(item) {
+        htmlFragment +=
+          '<div class="esri-item-container">' +
+          (item.thumbnailUrl
+            ? '<div class="esri-image" style="background-image:url(' +
+              item.thumbnailUrl +
+              '); cursor: pointer;" onclick="javascript:window.open(\'https://www.arcgis.com/home/item.html?id='+item.id+'\', \'_blank\');" title="'+item.title+'"></div>'
+            : '<div class="esri-image esri-null-image">Thumbnail not available</div>') +
+          (item.title
+            ? '<div class="esri-title">' + (item.title || "") + "</div>"
+            : '<div class="esri-title esri-null-title">Title not available</div>') +
+          "</div>";
+      });
+      document.getElementById("itemGallery").innerHTML = htmlFragment;
+    }
 
     });
   </script>

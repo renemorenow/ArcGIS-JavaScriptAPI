@@ -35,7 +35,7 @@
         }
     };
     </script>
-    <script src="http://js.arcgis.com/3.17/"></script>
+    <script src="https://js.arcgis.com/3.17/"></script>
     <script>
     var map;
 
@@ -96,7 +96,7 @@
                 zoom: 3
             });
 
-            hurricanes = new FeatureLayer("http://sampleserver6.arcgisonline.com/arcgis/rest/services/Hurricanes/MapServer/0", {
+            hurricanes = new FeatureLayer("https://sampleserver6.arcgisonline.com/arcgis/rest/services/Hurricanes/MapServer/0", {
                 mode: FeatureLayer.MODE_ONDEMAND,
                 outFields: ["*"]
             });
@@ -183,7 +183,7 @@
                 var defaultSym = new SimpleMarkerSymbol().setSize(4);
                 var renderer = new ClassBreaksRenderer(defaultSym, "clusterCount");
 
-                var picBaseUrl = "http://static.arcgis.com/images/Symbols/Shapes/";
+                var picBaseUrl = "https://static.arcgis.com/images/Symbols/Shapes/";
                 var blue = createMarker({fillColor:[115, 178, 255, 1]});//new PictureMarkerSymbol(picBaseUrl + "BluePin1LargeB.png", 32, 32).setOffset(0, 15);
                 //var green = new PictureMarkerSymbol(picBaseUrl + "GreenPin1LargeB.png", 64, 64).setOffset(0, 15);
                 var green = createMarker({fillColor:[152, 230, 0, 1]});

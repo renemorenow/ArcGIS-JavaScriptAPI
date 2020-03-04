@@ -7,11 +7,11 @@
     <title>Ejemplo 5: Pintar un marcador personalizado en un mapa</title>
     <meta name="description" content="Este es un ejemplo muy simple de cómo pintar un <a href='https://developers.arcgis.com/javascript/jsapi/picturemarkersymbol-amd.html'>marcador</a> en una posición sin información adicional." />
 
-    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" href="http://js.arcgis.com/3.14/esri/css/esri.css">
-    <link rel="stylesheet" href="http://esri-es.github.io/JavascriptAPI/src/tutoriales/css/tutorial_2.css">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="https://js.arcgis.com/3.14/esri/css/esri.css">
+    <link rel="stylesheet" href="https://esri-es.github.io/JavascriptAPI/src/tutoriales/css/tutorial_2.css">
 
-    <script src="http://js.arcgis.com/3.14/"></script>
+    <script src="https://js.arcgis.com/3.14/"></script>
     <script>
       require([
         "esri/map",
@@ -41,7 +41,7 @@
           "lon" : "-3.674" 
         };
       	var loc = new Point(item.lon, item.lat); 
-      	var symbol = new PictureMarkerSymbol("http://esri-es.github.io/JavascriptAPI/img/icon.png", 12, 24); 
+      	var symbol = new PictureMarkerSymbol("https://esri-es.github.io/JavascriptAPI/img/icon.png", 12, 24); 
       	capaGrafica.add(new Graphic(loc, symbol));
 
 

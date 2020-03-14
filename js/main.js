@@ -60,7 +60,7 @@ tutorialsApp.controller('MainCtrl', ['$scope', '$http', '$sce', '$location', 'lo
                                     description: description,
                                     path: elem.path,
                                     url: elem.html_url,
-                                    o: parseInt(name.substr(8,name.indexOf(":")-8)),
+                                    o: name,//parseInt(name.substr(8,name.indexOf(":")-8)),
                                     i: $scope.tutorials.length
                                 });
                                 }

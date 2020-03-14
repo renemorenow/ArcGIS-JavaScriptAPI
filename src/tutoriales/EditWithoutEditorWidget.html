@@ -4,7 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     
     <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
-    <title>v3.31 - Edit without editor widget (applyEdits)</title>
+    <title>applyEdits: Edit without editor widget (v3.31)</title>
     <meta name="description" content="https://developers.arcgis.com/javascript/3/jssamples/ed_feature_creation.html"/>
 
     <link rel="stylesheet" href="https://js.arcgis.com/3.31/dijit/themes/claro/claro.css">
@@ -138,6 +138,7 @@
             layer.on("click", function(evt) {
               event.stop(evt);
               if (evt.ctrlKey === true || evt.metaKey === true) {  //delete feature if ctrl key is depressed
+              debugger;
                 layer.applyEdits(null,null,[evt.graphic]);
                 currentLayer = this;
                 editToolbar.deactivate();

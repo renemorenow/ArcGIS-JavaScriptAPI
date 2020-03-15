@@ -104,12 +104,12 @@
       });
 
       identityManager.checkSignInStatus(portalUrl).then(function() {
-       dom.byId('anonymousPanel').style.display = 'none';
-       dom.byId('personalizedPanel').style.display = 'block';
-       //*** ADD ***//
-       displayMap();
-       //displayItems();
-     });
+        dom.byId('anonymousPanel').style.display = 'none';
+        dom.byId('personalizedPanel').style.display = 'block';
+        //*** ADD ***//
+        displayMap();
+        //displayItems();
+      });
 
      function displayMap() {
       var portal = new Portal();

@@ -12,14 +12,14 @@
     <link rel='stylesheet' type='text/css' href='css/fileupload.css' />
     <!-- <![endif]-->
 
-    <link rel="stylesheet" type="text/css" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.2/js/esri/css/esri.css" />
+    <link rel="stylesheet" type="text/css" href="https://serverapi.arcgisonline.com/jsapi/arcgis/3.2/js/esri/css/esri.css" />
     
     <script type="text/javascript">
       var dojoConfig = {
         parseOnLoad: true
       };
     </script>
-    <script type="text/javascript" src="http://serverapi.arcgisonline.com/jsapi/arcgis/?v=3.2">
+    <script type="text/javascript" src="https://serverapi.arcgisonline.com/jsapi/arcgis/?v=3.2">
       
     </script>
     <script type="text/javascript">
@@ -32,7 +32,7 @@
 
       dojo.addOnLoad(pageReady);
       var map;
-      var portalUrl = 'http://www.arcgis.com';
+      var portalUrl = 'https://www.arcgis.com';
 
       function pageReady() {
         esri.config.defaults.io.proxyUrl = "/arcgisserver/apis/javascript/proxy/proxy.ashx";
@@ -74,7 +74,7 @@
           dojo.connect(dijit.byId('mapCanvas'), 'resize', map, map.resize);
         });
 
-        var basemap = new esri.layers.ArcGISTiledMapServiceLayer("http://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer");
+        var basemap = new esri.layers.ArcGISTiledMapServiceLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer");
         map.addLayer(basemap);
       }
 
@@ -177,7 +177,7 @@
             'xoffset':0,
             'yoffset':0,
             'type':'esriPMS',
-            'url':'http://static.arcgis.com/images/Symbols/Shapes/BluePin1LargeB.png',
+            'url':'https://static.arcgis.com/images/Symbols/Shapes/BluePin1LargeB.png',
             'contentType':'image/png',
             'width':20,
             'height':20
@@ -201,7 +201,7 @@
         <div style='padding-left:4px;'>
           <p>
             Add a zipped shapefile to the map.</p><p>Visit the
-            <a target='_blank' href="http://help.arcgis.com/en/arcgisonline/help/#/About_shapefiles/010q000000m2000000"/>About Shapefiles</a> help topic for information and limitations.</p>
+            <a target='_blank' href="https://help.arcgis.com/en/arcgisonline/help/#/About_shapefiles/010q000000m2000000"/>About Shapefiles</a> help topic for information and limitations.</p>
               <form enctype="multipart/form-data" method="post" id="uploadForm">
               <div class="field">
                   <label class="file-upload">

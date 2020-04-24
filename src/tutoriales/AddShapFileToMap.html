@@ -86,7 +86,9 @@
         //See this link for more info: http://davidwalsh.name/fakepath
         name = name[0].replace("c:\\fakepath\\","");
         
-        dojo.byId('upload-status').innerHTML = '<b>Loading… </b>' + name; 
+        dojo.byId('upload-status').innerHTML = '<b>Loading… </b>' + name;
+
+        //var sss = map.setMapCursor("progress");
         
         //Define the input params for generate see the rest doc for details
         //http://www.arcgis.com/apidocs/rest/index.html?generate.html
@@ -163,8 +165,6 @@
         map.setExtent(fullExtent.expand(1.25), true);
         
         dojo.byId('upload-status').innerHTML = "";
-
-
       }
 
       function changeRenderer(layer) {

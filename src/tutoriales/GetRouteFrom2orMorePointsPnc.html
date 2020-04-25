@@ -1,0 +1,259 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no"/>
+    <meta name="description" content="Ejemplo de: https://developers.arcgis.com/javascript/latest/sample-code/tasks-route/index.html" />
+    <!--
+     ArcGIS API for JavaScript, https://js.arcgis.com
+     For more information about the tasks-route sample,
+     read the original sample description at developers.arcgis.com.
+     https://developers.arcgis.com/javascript/latest/sample-code/tasks-route/index.html
+     -->
+    <title>Get RouteTask from 2 or more points - 4.15</title>
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+
+      #paneDiv {
+        position: absolute;
+        top: 10px;
+        left: 62px;
+        padding: 0 12px 0 12px;
+        background-color: rgba(0, 0, 0, 0.5);
+        color: white;
+      }
+    </style>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.15/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.15/"></script>
+
+    <script>
+      function getDataRoute() {
+        var result = [];
+        result.push({"x": -8199498.825634318,"y": 573250.8741664584});
+        result.push({"x": -8227016.155816981,"y": 556740.4760568611});
+        result.push({"x": -8255756.478452206,"y": 512712.7477646018});
+        result.push({"x": -8290000.267123963,"y": 478468.9590928445});
+        result.push({"x": -8374386.746350793,"y": 492533.37229731627});
+        
+        return result;
+      }
+      var dataRoute = getDataRoute();
+      //console.log(JSON.stringify(dataRoute));
+      
+      require([
+        "esri/portal/Portal",
+        "esri/identity/OAuthInfo",
+        "esri/identity/IdentityManager",
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/Graphic",
+        "esri/layers/GraphicsLayer",
+        "esri/tasks/RouteTask",
+        "esri/tasks/support/RouteParameters",
+        "esri/tasks/support/FeatureSet",
+        "dojo/dom-style",
+        "dojo/dom-attr",
+        "dojo/on",
+        "dojo/dom"
+      ], function(
+        Portal, OAuthInfo, identityManager,
+        Map,
+        MapView,
+        Graphic,
+        GraphicsLayer,
+        RouteTask,
+        RouteParameters,
+        FeatureSet,
+        domStyle, domAttr, on, dom
+      ) {  
+
+        // ArcGIS Online or your portal address
+        var portalUrl = "https://www.arcgis.com/sharing";
+        // subsitute your own client ID to identify who spawned the login and check for a matching redirect URI
+        var info = new OAuthInfo({
+          appId: "ufXBM3VdHxmH52TA", //*** Your Client ID value goes here ***//
+          popup: false, // inline redirects don't require any additional app configuration
+          //popupCallbackUrl: "AccessTrafficUsingOAuth2.html",
+          // preserveUrlHash: true
+        });
+
+        identityManager.registerOAuthInfos([info]);
+        //Inicio Automatico
+        identityManager.getCredential(portalUrl);
+
+        // send users to arcgis.com to login
+        // on(dom.byId("sign-in"), "click", function() {
+        //   identityManager.getCredential(portalUrl);
+        // });
+        // log out and reload
+        on(dom.byId("sign-out"), "click", function() {
+          identityManager.destroyCredentials();
+          window.location.reload();
+        });
+
+        identityManager.checkSignInStatus(portalUrl).then(function() {
+          dom.byId('anonymousPanel').style.display = 'none';
+          dom.byId('personalizedPanel').style.display = 'block';
+          //*** ADD ***//
+          displayMap();
+          //displayItems();
+        });
+
+        function displayMap() {
+          var portal = new Portal();
+          portal.authMode = "immediate"; // Setting authMode to immediate signs the user in once loaded
+
+          // Once the portal has loaded, the user is signed in
+          portal.load().then(function() {
+            dom.byId('viewDiv').style.display = 'flex';
+            dom.byId('userId').innerHTML = portal.user.fullName;
+
+            // Point the URL to a valid route service that uses an
+            // ArcGIS Online hosted service proxy
+            var routeTask = new RouteTask({
+              url: "https://route.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World"
+                // "https://utility.arcgis.com/usrsvcs/appservices/srsKxBIxJZB0pTZ0/rest/services/World/Route/NAServer/Route_World"
+            });
+
+            // The stops and route result will be stored in this layer
+            var routeLayer = new GraphicsLayer();
+
+            // Setup the route parameters
+            var routeParams = new RouteParameters({
+              stops: new FeatureSet(),
+              outSpatialReference: {
+                // autocasts as new SpatialReference()
+                wkid: 3857
+              }
+            });
+
+            // Define the symbology used to display the stops
+            var stopSymbol = {
+              type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
+              style: "cross",
+              size: 15,
+              outline: {
+                // autocasts as new SimpleLineSymbol()
+                width: 4
+              }
+            };
+
+            // Define the symbology used to display the route
+            var routeSymbol = {
+              type: "simple-line", // autocasts as SimpleLineSymbol()
+              color: [0, 0, 255, 0.5],
+              width: 5
+            };
+
+            var map = new Map({
+              basemap: "streets",
+              layers: [routeLayer] // Add the route layer to the map
+            });
+            var view = new MapView({
+              container: "viewDiv", // Reference to the scene div created in step 5
+              map: map, // Reference to the map object created before the scene
+              center: [-74.0199, 4.7158],//center: [-117.195, 34.057],
+              zoom: 8
+            });
+
+            // Adds a graphic when the user clicks the map. If 2 or more points exist, route is solved.
+            view.on("click", addStop);
+            
+            //Add a point graphic:
+            var point = [];
+            dataRoute.forEach(function(item) {
+              var row = {
+                type: "point",
+                spatialReference: {
+                  latestWkid: 3857,
+                  wkid: 102100
+                },
+                x: item.x,
+                y: item.y
+              }
+              point.push(row);
+            });
+            point.forEach(element => {
+              addStop_Wm(element);
+            });
+            function addStop_Wm(event) {
+              var stop = new Graphic({
+                geometry: event,
+                symbol: stopSymbol
+              });
+              routeLayer.add(stop);
+              // Execute the route task if 2 or more stops are input
+              routeParams.stops.features.push(stop);
+              if (routeParams.stops.features.length >= 2) {
+                // console.log(JSON.stringify(routeParams));
+                routeTask.solve(routeParams).then(showRoute);
+              }
+            }
+            //
+
+            function addStop(event) {
+              // Add a point at the location of the map click
+              var stop = new Graphic({
+                geometry: event.mapPoint,
+                symbol: stopSymbol
+              });
+              routeLayer.add(stop);
+
+              // Execute the route task if 2 or more stops are input
+              routeParams.stops.features.push(stop);
+              if (routeParams.stops.features.length >= 2) {
+                if (routeParams.stops.features.length >= 5) {
+                    console.log(JSON.stringify(routeParams));
+                }
+                routeTask.solve(routeParams).then(showRoute);
+              }
+            }
+            // Adds the solved route to the map as a graphic
+            function showRoute(data) {
+              var routeResult = data.routeResults[0].route;
+              routeResult.symbol = routeSymbol;
+              routeLayer.add(routeResult);
+            }
+            
+          });
+          
+      }
+
+      });
+    </script>
+  </head>
+  <body>
+    <div id="anonymousPanel" style="display: block; padding: 5px; text-align: center;">
+      <span id="sign-in" class="action">Iniciar sesion</span>
+    </div>
+  
+    <div id="personalizedPanel" style="display: none; padding: 5px; text-align: center;">
+      Welcome <span id="userId" style="font-weight: bold;"></span> &nbsp;-&nbsp;
+      <span id="sign-out" class="action">Sign Out</span>
+    </div>
+    <!-- for the map -->
+    <div id="viewDiv" style="display: none;"></div>
+    <!-- <div id="viewDiv"></div> -->
+    <!-- <div id="paneDiv" class="esri-widget">
+      <div>
+        <p>
+          Click on the map to add stops to the route. The route from the last
+          stop to the newly added stop is calculated. If a stop is not
+          reachable, it is removed and the last valid point is set as the
+          starting point.
+        </p>
+      </div>
+    </div> -->
+  </body>
+</html>
